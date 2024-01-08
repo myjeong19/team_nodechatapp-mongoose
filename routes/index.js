@@ -1,33 +1,38 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const ChannelMember = require('../schemas/member');
+const ChannelMember = require("../schemas/member");
 
 /* GET home page. */
 
-router.get('/', async (req, res, next) => {
-  res.render('login');
+router.get("/", async (req, res, next) => {
+  res.render("login");
 });
 
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   const { email, member_password } = req.body;
   try {
     const getMember = await ChannelMember.findOne({ email });
 
     if (getMember && getMember.member_password === member_password) {
-      res.redirect('/chat');
+      res.redirect("/chat");
     } else {
-      res.redirect('/');
+      console.log("here");
+      res.setHeader("Content-Type", "application/json");
+      res
+        .status(401)
+        .json({ success: false, message: "Invalid username or password" });
+      //res.redirect("/");
     }
   } catch (error) {
     console.log(error);
   }
 });
 
-router.get('/entry', async (req, res, next) => {
-  res.render('entry');
+router.get("/entry", async (req, res, next) => {
+  res.render("entry");
 });
 
-router.post('/entry', async (req, res) => {
+router.post("/entry", async (req, res) => {
   const { email, member_password, name, profile_img_path, telephone } =
     req.body;
   const newMember = {
@@ -44,18 +49,18 @@ router.post('/entry', async (req, res) => {
 
   try {
     await ChannelMember.create(newMember);
-    res.redirect('/');
+    res.redirect("/");
   } catch (error) {
     console.log(error);
   }
 });
 
-router.get('/find', async (req, res, next) => {
-  res.render('find');
+router.get("/find", async (req, res, next) => {
+  res.render("find");
 });
 
-router.post('/find', async (req, res) => {
-  res.redirect('login');
+router.post("/find", async (req, res) => {
+  res.redirect("login");
 });
 
 module.exports = router;

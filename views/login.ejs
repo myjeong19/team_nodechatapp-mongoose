@@ -36,32 +36,32 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  const form = document.getElementById('form');
+  const form = document.getElementById("form");
 
-  const handleSubmit = async e => {
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
+  const handleSubmit = async (e) => {
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
 
-    if (email.value === '') {
+    if (email.value === "") {
       e.preventDefault();
       await Swal.fire({
-        icon: 'error',
-        title: '로그인 실패',
-        text: '이메일을 입력해주세요',
+        icon: "error",
+        title: "로그인 실패",
+        text: "이메일을 입력해주세요",
       });
       return false;
     }
 
-    if (password.value === '') {
+    if (password.value === "") {
       e.preventDefault();
       await Swal.fire({
-        icon: 'error',
-        title: '로그인 실패',
-        text: '비밀번호를 입력해주세요',
+        icon: "error",
+        title: "로그인 실패",
+        text: "비밀번호를 입력해주세요",
       });
       return false;
     }
   };
 
-  form.addEventListener('submit', handleSubmit);
+  form.addEventListener("submit", handleSubmit);
 </script>
