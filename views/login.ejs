@@ -1,6 +1,6 @@
 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
   <div class="login-wrapper">
-    <form action="/" method="post">
+    <form action="/" method="post" id="form">
       <div class="login-screen">
         <div class="login-body">
           <a href="/" class="login-logo">
@@ -9,11 +9,11 @@
           <h6>Welcome back,<br />Please login to your account.</h6>
 
           <div class="field-wrapper">
-            <input type="email" autofocus />
+            <input type="email" autofocus name="email" id="email" />
             <div class="field-placeholder">Email ID</div>
           </div>
           <div class="field-wrapper mb-3">
-            <input type="password" />
+            <input type="password" name="password" id="password" />
             <div class="field-placeholder">Password</div>
           </div>
           <div class="actions">
@@ -31,3 +31,35 @@
     </form>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  const form = document.getElementById('form');
+
+  const handleSubmit = async e => {
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+
+    if (email.value === '') {
+      e.preventDefault();
+      await Swal.fire({
+        icon: 'error',
+        title: '로그인 실패',
+        text: '이메일을 입력해주세요',
+      });
+      return false;
+    }
+
+    if (password.value === '') {
+      e.preventDefault();
+      await Swal.fire({
+        icon: 'error',
+        title: '로그인 실패',
+        text: '비밀번호를 입력해주세요',
+      });
+      return false;
+    }
+  };
+  form.addEventListener('submit', handleSubmit);
+</script>

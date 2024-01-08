@@ -1,107 +1,205 @@
-const express = require('express');
-const router = express.Router();
-const Member = require('../schemas/member');
+var express = require("express");
+var router = express.Router();
+const path = require("path");
+const app = express();
 
-router.get('/all', async (req, res, next) => {
+//각종 라이브러리
+const ChannelMember = require("../schemas/member");
+
+//개인용 util
+const { mergeByKey } = require("./utils/utiles");
+
+//login api
+router.post("/login", async (req, res, next) => {
   try {
-    const members = await Member.find({});
-    res.json(members);
-  } catch (error) {
-    console.log(error);
-  }
-});
+    var { email, password } = req.body;
+    const member = await ChannelMember.findOne({ email });
 
-router.post('/create', async (req, res, next) => {
-  const {
-    email,
-    member_password,
-    name,
-    profile_img_path,
-    telephone,
-    entry_type_code,
-    use_state_code,
-    reg_member_id,
-  } = req.body;
-
-  const createMember = {
-    email,
-    member_password,
-    name,
-    profile_img_path,
-    telephone,
-    entry_type_code,
-    use_state_code,
-    reg_member_id,
-  };
-
-  try {
-    const DuplicateTest = await Member.findOne({
-      email,
-    });
-
-    if (email !== DuplicateTest) {
-      await Member.create(createMember);
-      console.log('회원 가입이 완료되었습니다.');
+    if (!member) {
+      return res.json({ success: false, message: "No member" });
+    } else if (member.member_password !== password) {
+      return res.json({ success: false, message: "Password Wrong" });
     } else {
-      console.log('이미 가입한 아이디 입니다.');
+      return res.json({ success: true, message: "Login success" });
     }
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    console.error("Error in member POST /login:", err);
+    res.status(500).send("Internal Server Error");
   }
 });
 
-router.post('/modify', async (req, res, next) => {
-  const selectedUser = req.query.email;
+//entry api
 
-  const {
-    email,
-    member_password,
-    name,
-    profile_img_path,
-    telephone,
-    entry_type_code,
-    use_state_code,
-    reg_member_id,
-  } = req.body;
-
-  const updatedMember = {
-    email,
-    member_password,
-    name,
-    profile_img_path,
-    telephone,
-    entry_type_code,
-    use_state_code,
-    reg_member_id,
-  };
-
+router.post("/entry", async (req, res, next) => {
   try {
-    await Member.updateOne({ email: selectedUser }, updatedMember);
-  } catch (error) {
-    console.log(error);
+    var new_member = {
+      email: req.body.email,
+      member_password: req.body.member_password,
+      name: req.body.name,
+      profile_img_path: req.body.profile_img_path,
+      telephone: req.body.telephone,
+      entry_type_code: req.body.entry_type_code,
+      use_state_code: req.body.use_state_code,
+      birth_date: req.body.birth_date,
+      reg_date: Date.now(),
+      reg_member_id: req.body.reg_member_id,
+      edit_date: Date.now(),
+      edit_member_id: req.body.edit_member_id,
+    };
+    const member = await ChannelMember.findOne({ email: new_member.email });
+
+    if (member) {
+      return res.json({ success: false, message: "Already Member exists" });
+    } else {
+      var result = await ChannelMember.create(new_member);
+      console.log("create result : ", result);
+      return res.json({ success: true, message: "Create Success" });
+    }
+  } catch (err) {
+    console.error("Error in member POST /entry:", err);
+    res.status(500).send("Internal Server Error");
   }
 });
 
-router.post('/delete', async (req, res, next) => {
-  const selectedUser = req.query.email;
-
+//find api
+router.post("/find", async (req, res, next) => {
   try {
-    await Member.deleteOne({ email: selectedUser });
-  } catch {
-    consolelog(error);
+    var { email } = req.body;
+    const member = await ChannelMember.findOne({ email });
+
+    if (!member) {
+      return res.json({ success: false, message: "No member ...to find" });
+    } else {
+      return res.json({
+        success: true,
+        message: `${member.email}'s password is ${member.member_password}`,
+      });
+    }
+  } catch (err) {
+    console.error("Error in member POST /find:", err);
+    res.status(500).send("Internal Server Error");
   }
 });
 
-router.get('/:id', async (req, res, next) => {
-  const getMember = req.params.id;
+router.get("/all", async (req, res, next) => {
+  const member_list = await ChannelMember.find({});
+  res.send(member_list);
+});
+
+router.post("/create", async (req, res, next) => {
   try {
-    const selectedMember = await Member.findOne({
-      member_id: getMember,
-    });
-    res.json(selectedMember);
-  } catch (error) {
-    console.log('ERROR: 에러가 발생했습니다 관리자에게 문의하세요.');
+    var member = {
+      email: req.body.email,
+      member_password: req.body.member_password,
+      name: req.body.name,
+      profile_img_path: req.body.profile_img_path,
+      telephone: req.body.telephone,
+      entry_type_code: req.body.entry_type_code,
+      use_state_code: req.body.use_state_code,
+      birth_date: req.body.birth_date,
+      reg_date: Date.now(),
+      reg_member_id: req.body.reg_member_id,
+      edit_date: Date.now(),
+      edit_member_id: req.body.edit_member_id,
+    };
+    await ChannelMember.create(member);
+    console.log("member create : ", member);
+    res.send(member);
+  } catch (err) {
+    console.error("Error in member POST /create:", err);
+    res.status(500).send("Internal Server Error");
   }
+});
+
+//POST /modify
+//에러처리
+//1. http://localhost:3000/api/member/modify body에서 member_id="a" -> catch문
+//2. http://localhost:3000/api/member/modify/1 -> 정의되지 않은 라우터경로 처리
+//3. http://localhost:3000/api/member/modify에서 body에 member_id=999 -> member not found in modify 처리
+router.post("/modify", async (req, res, next) => {
+  var member_id = req.body.member_id;
+  try {
+    const member = await ChannelMember.findOne({ member_id });
+    if (!member) {
+      // 멤버를 찾지 못한 경우
+      return res.status(404).send("Member not found in modify");
+    }
+    var mergedObject = mergeByKey(member.toJSON(), req.body);
+
+    mergedObject.edit_date = Date.now();
+    mergedObject.reg_date = Date.now();
+    await ChannelMember.updateOne({ member_id }, mergedObject);
+    res.send(member);
+  } catch (err) {
+    console.error("Error in member POST /modify:", err);
+    res.status(500).send("error in POST modify!!!");
+  }
+});
+
+//POST /delete
+//에러처리
+//1. http://localhost:3000/api/member/delete  -> body에 member id="ㅁㅁ"-> catch문
+//2. http://localhost:3000/api/member/delete/1  -> 정의되지 않은 라우터 경로
+//3. http://localhost:3000/api/member/delete -> body에 member id="999"-> member not found 처리
+router.post("/delete", async (req, res, next) => {
+  try {
+    var member_id = req.body.member_id;
+    var member = await ChannelMember.deleteOne({ member_id });
+
+    if (!member || member.deletedCount === 0) {
+      return res.status(404).send("Member not found in POST delete");
+    }
+    //res.send(member);
+    console.log("member_id in delte ", member_id, member);
+    res.send({ member_id });
+  } catch (err) {
+    console.error("Error in member POST /delete:", err);
+    res.status(500).send("error in POST /delete!!!");
+  }
+});
+
+//GET /:mid
+//에러처리
+//1. http://localhost:3000/api/member/asd -> catch문
+//2. http://localhost:3000/api/member/ -> 정의되지 않은 라우터경로 처리
+//3. http://localhost:3000/api/member/999 -> member not found 처리
+router.get("/:mid", async (req, res, next) => {
+  try {
+    var member_id = req.params.mid;
+    const member = await ChannelMember.findOne({ member_id });
+
+    if (!member) {
+      // 멤버를 찾지 못한 경우
+      return res.status(404).send("Member not found");
+    } else {
+      // 멤버를 찾은 경우
+      //res.render("member/list", { member_list });
+      res.send(member);
+    }
+  } catch (err) {
+    console.error("Error in member GET /:mid", err);
+    res.status(500).send("error in GET /:mid!!! ");
+  }
+});
+
+//아래의 에러처리 코드는 무조건 router정의가 다 끝난 최하단에 위치해야 함.
+//위에서 정의하지 않은 라우터에 대한 모든 요청에 대해서
+//Error 객체를 생성하는 아래의 미들웨어를 실행한다.
+router.use((req, res, next) => {
+  const error = new Error("정의되지 않은 라우터 경로입니다.");
+  error.status = 404;
+  next(error);
+});
+
+//위에서 받은 Error객체를 통해 화면에 처리하는 미들웨어
+router.use((err, req, res, next) => {
+  //console.log(err);
+  res.status(err.status || 500);
+  res.json({
+    error: {
+      message: err.message,
+    },
+  });
 });
 
 module.exports = router;
