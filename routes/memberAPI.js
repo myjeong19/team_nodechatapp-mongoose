@@ -13,8 +13,8 @@ const { mergeByKey } = require("./utils/utiles");
 router.post("/login", async (req, res, next) => {
   try {
     var { email, password } = req.body;
-
     const member = await ChannelMember.findOne({ email });
+
     if (!member) {
       return res.json({ success: false, message: "No member" });
     } else if (member.member_password !== password) {
@@ -23,7 +23,7 @@ router.post("/login", async (req, res, next) => {
       return res.json({ success: true, message: "Login success" });
     }
   } catch (err) {
-    console.error("Error in member get:", err);
+    console.error("Error in member POST /login:", err);
     res.status(500).send("Internal Server Error");
   }
 });
@@ -46,8 +46,8 @@ router.post("/entry", async (req, res, next) => {
       edit_date: Date.now(),
       edit_member_id: req.body.edit_member_id,
     };
-
     const member = await ChannelMember.findOne({ email: new_member.email });
+
     if (member) {
       return res.json({ success: false, message: "Already Member exists" });
     } else {
@@ -56,7 +56,7 @@ router.post("/entry", async (req, res, next) => {
       return res.json({ success: true, message: "Create Success" });
     }
   } catch (err) {
-    console.error("Error in member entry:", err);
+    console.error("Error in member POST /entry:", err);
     res.status(500).send("Internal Server Error");
   }
 });
@@ -65,8 +65,8 @@ router.post("/entry", async (req, res, next) => {
 router.post("/find", async (req, res, next) => {
   try {
     var { email } = req.body;
-
     const member = await ChannelMember.findOne({ email });
+
     if (!member) {
       return res.json({ success: false, message: "No member ...to find" });
     } else {
@@ -76,7 +76,7 @@ router.post("/find", async (req, res, next) => {
       });
     }
   } catch (err) {
-    console.error("Error in member get:", err);
+    console.error("Error in member POST /find:", err);
     res.status(500).send("Internal Server Error");
   }
 });
@@ -106,43 +106,63 @@ router.post("/create", async (req, res, next) => {
     console.log("member create : ", member);
     res.send(member);
   } catch (err) {
-    console.error("Error in member create:", err);
+    console.error("Error in member POST /create:", err);
     res.status(500).send("Internal Server Error");
   }
 });
 
+//POST /modify
+//에러처리
+//1. http://localhost:3000/api/member/modify body에서 member_id="a" -> catch문
+//2. http://localhost:3000/api/member/modify/1 -> 정의되지 않은 라우터경로 처리
+//3. http://localhost:3000/api/member/modify에서 body에 member_id=999 -> member not found in modify 처리
 router.post("/modify", async (req, res, next) => {
   var member_id = req.body.member_id;
   try {
     const member = await ChannelMember.findOne({ member_id });
+    if (!member) {
+      // 멤버를 찾지 못한 경우
+      return res.status(404).send("Member not found in modify");
+    }
     var mergedObject = mergeByKey(member.toJSON(), req.body);
+
     mergedObject.edit_date = Date.now();
     mergedObject.reg_date = Date.now();
     await ChannelMember.updateOne({ member_id }, mergedObject);
     res.send(member);
   } catch (err) {
-    res.status(400).send("error!!! : " + err);
+    console.error("Error in member POST /modify:", err);
+    res.status(500).send("error in POST modify!!!");
   }
 });
 
+//POST /delete
+//에러처리
+//1. http://localhost:3000/api/member/delete  -> body에 member id="ㅁㅁ"-> catch문
+//2. http://localhost:3000/api/member/delete/1  -> 정의되지 않은 라우터 경로
+//3. http://localhost:3000/api/member/delete -> body에 member id="999"-> member not found 처리
 router.post("/delete", async (req, res, next) => {
   try {
     var member_id = req.body.member_id;
-    console.log("delete member_id : ", member_id);
     var member = await ChannelMember.deleteOne({ member_id });
-    //console.log("member delete :", member);
+
     if (!member || member.deletedCount === 0) {
-      return res.status(404).send("Member not found");
+      return res.status(404).send("Member not found in POST delete");
     }
     //res.send(member);
     console.log("member_id in delte ", member_id, member);
     res.send({ member_id });
   } catch (err) {
-    console.error("Error in member get:", err);
-    res.status(500).send("Internal Server Error");
+    console.error("Error in member POST /delete:", err);
+    res.status(500).send("error in POST /delete!!!");
   }
 });
 
+//GET /:mid
+//에러처리
+//1. http://localhost:3000/api/member/asd -> catch문
+//2. http://localhost:3000/api/member/ -> 정의되지 않은 라우터경로 처리
+//3. http://localhost:3000/api/member/999 -> member not found 처리
 router.get("/:mid", async (req, res, next) => {
   try {
     var member_id = req.params.mid;
@@ -151,14 +171,14 @@ router.get("/:mid", async (req, res, next) => {
     if (!member) {
       // 멤버를 찾지 못한 경우
       return res.status(404).send("Member not found");
+    } else {
+      // 멤버를 찾은 경우
+      //res.render("member/list", { member_list });
+      res.send(member);
     }
-
-    // 멤버를 찾은 경우
-    //res.render("member/list", { member_list });
-    res.send(member);
   } catch (err) {
-    console.error("Error in member get:", err);
-    res.status(500).send("Internal Server Error");
+    console.error("Error in member GET /:mid", err);
+    res.status(500).send("error in GET /:mid!!! ");
   }
 });
 
@@ -166,7 +186,7 @@ router.get("/:mid", async (req, res, next) => {
 //위에서 정의하지 않은 라우터에 대한 모든 요청에 대해서
 //Error 객체를 생성하는 아래의 미들웨어를 실행한다.
 router.use((req, res, next) => {
-  const error = new Error("Not Found");
+  const error = new Error("정의되지 않은 라우터 경로입니다.");
   error.status = 404;
   next(error);
 });
