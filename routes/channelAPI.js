@@ -77,6 +77,8 @@ router.get('/all', async (req, res, next) => {
 
 });
 
+
+
 router.post('/create', async (req, res, next) => {
 
 
@@ -111,7 +113,7 @@ router.post('/create', async (req, res, next) => {
     };
 
     console.log('channel : ', channel)
-    const newChannel = await Channel.create({channel});
+    const newChannel = await Channel.create(channel);
 
     apiResult.code = 200;
     apiResult.data = newChannel;
@@ -131,38 +133,112 @@ router.post('/create', async (req, res, next) => {
   res.json(apiResult);
 });
 
-router.get('/modify/:id', async (req, res, next) => {
-  try {
-    const findId = req.params.id;
 
-    res.json(channelList[findId]);
-  } catch (error) {
-    console.log('ERROR: 에러가 발생했습니다 관리자에게 문의하세요.');
-  }
-});
-
-router.post('/modify/:id', async (req, res, next) => {
-  try {
-    const getChannel = channelList.find(
-      channel => channel.channel_id !== req.body.channel_id
-    );
-
-    res.json(getChannel);
-  } catch (error) {
-    console.log('ERROR: 에러가 발생했습니다 관리자에게 문의하세요.');
-  }
-});
 
 router.post('/delete', async (req, res, next) => {
   try {
-    const updatedChannelList = channelList.filter(
-      channel => channel.channel_id == req.body.channel_id
-    );
 
-    res.json(updatedChannelList);
+    var channel_id = req.body.channel_id;
+
+    const deletedChannel = await Channel.deleteOne({channel_id});
+
+    apiResult.code = 200;
+    apiResult.data = deletedChannel;
+    apiResult.result = 'OK';
+
+  } catch (error) {
+
+    console.log(error.message);
+
+    apiResult.code = 500;
+    apiResult.data = null;
+    apiResult.result = 'Failed';
+
+  }
+
+  res.json(apiResult);
+});
+
+
+
+router.get('/modify/:id', async (req, res, next) => {
+  try {
+
+    const channelId = req.params.id;
+
+    const savedChannel = await Channel.findOne({channel_id:channelId});
+
+    apiResult.code = 200;
+    apiResult.data = savedChannel;
+    apiResult.result = 'OK';
+
   } catch (error) {
     console.log('ERROR: 에러가 발생했습니다 관리자에게 문의하세요.');
+
+    apiResult.code = 500;
+    apiResult.data = null;
+    apiResult.result = 'Failed';
   }
+
+  res.json(apiResult);
 });
+
+router.post('/modify/:id', async (req, res, next) => {
+
+  try {
+
+    var channelId = req.params.id;
+
+    var {
+      community_id,
+      category_code,
+      channel_name,
+      user_limit,
+      channel_img_path,
+      channel_desc,
+      channel_state_code,
+      reg_date,
+      reg_member_id,
+      edit_date,
+      edit_member_id
+    } = req.body;
+  
+    var channel = {
+      community_id,
+      category_code,
+      channel_name,
+      channel_desc,
+      user_limit,
+      channel_img_path,
+      channel_state_code,
+      reg_member_id,
+      reg_date: new Date(),
+      edit_member_id,
+      edit_date: new Date(),
+    };
+
+    const updatedChannel = await Channel.updateOne({channel_id:channelId},channel);
+
+    apiResult.code = 200;
+    apiResult.data = updatedChannel;
+    apiResult.result = 'OK';
+
+
+  } catch (error) {
+
+    console.log(error.message);
+
+    apiResult.code = 500;
+    apiResult.data = null;
+    apiResult.result = 'Failed';
+  }
+
+
+  res.json(apiResult);
+});
+
+
+
+
 
 module.exports = router;
