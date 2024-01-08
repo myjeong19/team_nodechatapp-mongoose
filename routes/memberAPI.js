@@ -10,6 +10,18 @@ const ChannelMember = require("../schemas/member");
 const { mergeByKey } = require("./utils/utiles");
 
 //login api
+//에러처리
+//1. http://localhost:3000/api/member/login/1 -> 정의되지 않은 라우터경로 처리
+//2. http://localhost:3000/api/member/login "email" : "hwoarang09@naver.com11" 이메일이 db에없는 경우
+// {
+//   "success": false,
+//   "message": "No member"
+// }
+//3. http://localhost:3000/api/member/login  email이 db에 존재하는데 password를 틀릴 경우
+// {
+//   "success": false,
+//   "message": "Password Wrong"
+// }
 router.post("/login", async (req, res, next) => {
   try {
     var { email, password } = req.body;
@@ -81,11 +93,23 @@ router.post("/find", async (req, res, next) => {
   }
 });
 
+//GET /all
+//에러처리
+//1. http://localhost:3000/api/member/all/1 -> 정의되지 않은 라우터경로 처리
 router.get("/all", async (req, res, next) => {
-  const member_list = await ChannelMember.find({});
-  res.send(member_list);
+  try {
+    const member_list = await ChannelMember.find({});
+    res.send(member_list);
+  } catch (err) {
+    console.error("Error in member GET /all:", err);
+    res.status(500).send("error in GET all!!!");
+  }
 });
 
+//POST /create
+//에러처리
+//1. http://localhost:3000/api/member/create body에서 use_state_code="a" -> catch문
+//2. http://localhost:3000/api/member/create/1 -> 정의되지 않은 라우터경로 처리
 router.post("/create", async (req, res, next) => {
   try {
     var member = {
@@ -107,7 +131,7 @@ router.post("/create", async (req, res, next) => {
     res.send(member);
   } catch (err) {
     console.error("Error in member POST /create:", err);
-    res.status(500).send("Internal Server Error");
+    res.status(500).send("error in POST create!!!");
   }
 });
 
