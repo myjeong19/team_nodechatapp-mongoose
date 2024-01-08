@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
+const Channel = require('../schemas/channel');
+
 const channelList = [
   {
     channel_id: '0',
@@ -43,52 +45,90 @@ const channelList = [
   },
 ];
 
+var apiResult = {
+  code: 200,
+  data: null,
+  result: '',
+};
+
+
+
 router.get('/all', async (req, res, next) => {
+
+
   try {
-    res.json(channelList);
+
+
+
+    const channelList = await Channel.find({});
+
+    apiResult.code = 200;
+    apiResult.data = channelList;
+    apiResult.result = 'OK';
+
+
   } catch (error) {
+
     console.log('ERROR: 에러가 발생했습니다 관리자에게 문의하세요.');
+
   }
+
+  res.json(apiResult);
+
 });
 
 router.post('/create', async (req, res, next) => {
-  const {
-    channel_id,
-    category_code,
-    channel_name,
-    channel_desc,
-    user_limit,
-    channel_img_path,
-    channel_state_code,
-    reg_date,
-    reg_member_id,
-    edit_date,
-    edit_member_id,
-  } = req.body;
 
-  const newChannel = {
-    channel_id,
-    category_code,
-    channel_name,
-    channel_desc,
-    user_limit,
-    channel_img_path,
-    channel_state_code,
-    reg_date,
-    reg_member_id,
-    edit_date,
-    reg_date: new Date(),
-    edit_member_id,
-    edit_date: new Date(),
-  };
 
   try {
-    const updatedChannelList = [...channelList, newChannel];
 
-    res.json(updatedChannelList);
+    const {
+      community_id,
+      category_code,
+      channel_name,
+      user_limit,
+      channel_img_path,
+      channel_desc,
+      channel_state_code,
+      reg_date,
+      reg_member_id,
+      edit_date,
+      edit_member_id
+    } = req.body;
+  
+    const channel = {
+      community_id,
+      category_code,
+      channel_name,
+      channel_desc,
+      user_limit,
+      channel_img_path,
+      channel_state_code,
+      reg_member_id,
+      reg_date: new Date(),
+      edit_member_id,
+      edit_date: new Date(),
+    };
+
+    console.log('channel : ', channel)
+    const newChannel = await Channel.create({channel});
+
+    apiResult.code = 200;
+    apiResult.data = newChannel;
+    apiResult.result = 'OK';
+
+
   } catch (error) {
-    console.log('ERROR: 에러가 발생했습니다 관리자에게 문의하세요.');
+
+    console.log(error.message);
+
+    apiResult.code = 500;
+    apiResult.data = null;
+    apiResult.result = 'Failed';
   }
+
+
+  res.json(apiResult);
 });
 
 router.get('/modify/:id', async (req, res, next) => {
