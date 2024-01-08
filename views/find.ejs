@@ -1,6 +1,6 @@
 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
   <div class="login-wrapper">
-    <form action="/find">
+    <form action="/find" method="post">
       <div class="login-screen">
         <div class="login-body pb-4">
           <a href="/entry" class="login-logo">
@@ -11,7 +11,7 @@
             provided during the registration process.
           </h6>
           <div class="field-wrapper mb-3">
-            <input type="email" autofocus />
+            <input type="email" name="email" id="email" autofocus />
             <div class="field-placeholder">Email ID</div>
           </div>
           <div class="actions">
