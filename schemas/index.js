@@ -8,7 +8,6 @@ const connect = () => {
 
   //몽고DB연결정보를 설정합니다.
   mongoose.connect(
-
     "mongodb+srv://a01022883839:tjddnjs12@moduchat.vwrixtq.mongodb.net/?retryWrites=true&w=majority",
     {
       dbName: "modu_chat",
@@ -34,9 +33,8 @@ mongoose.connection.on("disconnected", () => {
 
 //회원정보 콜렉션 모델을 참조합니다.
 
-
 //채널정보 컬렉션 모델을 참조합니다.
-require('./channel.js');
+require("./channel.js");
 require("./member.js");
 
 module.exports = connect;

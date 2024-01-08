@@ -27,13 +27,10 @@ router.post("/login", async (req, res, next) => {
     var { email, password } = req.body;
     const member = await ChannelMember.findOne({ email });
 
-    if (!member) {
-      return res.json({ success: false, message: "No member" });
-    } else if (member.member_password !== password) {
+    if (!member) return res.json({ success: false, message: "No member" });
+    else if (member.member_password !== password)
       return res.json({ success: false, message: "Password Wrong" });
-    } else {
-      return res.json({ success: true, message: "Login success" });
-    }
+    else return res.json({ success: true, message: "Login success" });
   } catch (err) {
     console.error("Error in member POST /login:", err);
     res.status(500).send("Internal Server Error");
@@ -197,7 +194,6 @@ router.get("/:mid", async (req, res, next) => {
       return res.status(404).send("Member not found");
     } else {
       // 멤버를 찾은 경우
-      //res.render("member/list", { member_list });
       res.send(member);
     }
   } catch (err) {
