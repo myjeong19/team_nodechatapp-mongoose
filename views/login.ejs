@@ -1,6 +1,6 @@
 <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">
   <div class="login-wrapper">
-    <form id="form">
+    <form action="/" method="post" id="form">
       <div class="login-screen">
         <div class="login-body">
           <a href="/" class="login-logo">
@@ -16,16 +16,10 @@
             <input type="password" name="member_password" id="password" />
             <div class="field-placeholder">Password</div>
           </div>
-          <div id="error-message"></div>
+
           <div class="actions">
             <a href="/find">Forgot password?</a>
-            <button
-              type="button"
-              onclick="handleSubmit()"
-              class="btn btn-primary"
-            >
-              Login
-            </button>
+            <button type="submit" class="btn btn-primary">Login</button>
           </div>
         </div>
         <div class="login-footer">
@@ -42,51 +36,14 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  async function login() {
-    const email = document.getElementById("email").value;
-    const member_password = document.getElementById("password").value;
-
-    try {
-      const response = await fetch("/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          member_password,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        displayErrorMessage(errorData.message);
-        document.getElementById("email").value = "";
-        document.getElementById("password").value = "";
-      } else {
-        // 로그인이 성공한 경우, 여기에서 추가적인 로직을 수행할 수 있음
-        console.log("Login successful");
-        window.location.href = "/chat";
-        //displayErrorMessage("Login successful");
-      }
-    } catch (error) {
-      console.error("Error during login:", error);
-    }
-  }
-  function displayErrorMessage(message) {
-    const errorMessageElement = document.getElementById("error-message");
-    errorMessageElement.innerText = message;
-  }
-
   const form = document.getElementById("form");
 
   const handleSubmit = async (e) => {
-    console.log("clik!!");
     const email = document.getElementById("email");
     const password = document.getElementById("password");
 
     if (email.value === "") {
-      //e.preventDefault();
+      e.preventDefault();
       await Swal.fire({
         icon: "error",
         title: "로그인 실패",
@@ -96,7 +53,7 @@
     }
 
     if (password.value === "") {
-      //e.preventDefault();
+      e.preventDefault();
       await Swal.fire({
         icon: "error",
         title: "로그인 실패",
@@ -104,8 +61,7 @@
       });
       return false;
     }
-    login();
   };
 
-  //form.addEventListener("submit", handleSubmit);
+  form.addEventListener("submit", handleSubmit);
 </script>

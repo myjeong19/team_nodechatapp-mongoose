@@ -16,12 +16,7 @@ router.post("/", async (req, res) => {
     if (getMember && getMember.member_password === member_password) {
       res.redirect("/chat");
     } else {
-      console.log("here");
-      res.setHeader("Content-Type", "application/json");
-      res
-        .status(401)
-        .json({ success: false, message: "Invalid username or password" });
-      //res.redirect("/");
+      res.redirect("/");
     }
   } catch (error) {
     console.log(error);
@@ -60,25 +55,7 @@ router.get("/find", async (req, res, next) => {
 });
 
 router.post("/find", async (req, res) => {
-  const email = req.body.email;
-
-  try {
-    const getMember = await ChannelMember.findOne({ email });
-    console.log(getMember);
-
-    if (getMember) {
-      var result = {
-        success: true,
-        message: `${getMember.email}님의 비밀번호는 ${getMember.member_password}입니다.`,
-      };
-      console.log(result);
-      res.redirect("/");
-    } else {
-      console.log("해당 유저는 존재하지 않습니다.");
-    }
-  } catch (error) {
-    console.log(error);
-  }
+  res.redirect("login");
 });
 
 module.exports = router;
